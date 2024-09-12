@@ -1,0 +1,30 @@
+  {{ WP_SERVICE }}:
+    image: wordpress:latest
+    container_name: {{ WP_SERVICE }}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.{{ WP_SERVICE }}.rule=Host(`{{ WP_DOMAIN }}`)"
+      - "traefik.http.routers.{{ WP_SERVICE }}.entrypoints=websecure"
+      - "traefik.http.routers.{{ WP_SERVICE }}.tls.certresolver=myresolver"
+    env_file:
+      - {{ WP_SERVICE }}.env
+    volumes:
+      - {{ WP_SERVICE }}:/var/www/html
+    networks:
+      - shared_network
+      - {{ DB_NETWORK }}
+    depends_on:
+      - traefik
+      - {{ DB_SERVICE }}
+
+  {{ DB_SERVICE }}:
+    image: mariadb:latest
+    container_name: {{ DB_SERVICE }}
+    env_file:
+      - {{ WP_SERVICE }}.env
+    labels:
+      - "traefik.enable=false"
+    volumes:
+      - {{ DB_SERVICE }}:/var/lib/mysql
+    networks:
+      - {{ DB_NETWORK }}

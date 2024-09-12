@@ -1,0 +1,63 @@
+- hosts: myhosts
+  become: yes
+  vars_files:
+    - external_vars.yaml
+  
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install yum packages
+      yum:
+        name:
+          - docker
+
+    - name: Check /home/ec2-user/.docker directory exists
+      stat:
+        path: /usr/local/lib/docker/cli-plugins
+      register: r
+
+    - name: Install docker compose plugin
+      shell: |
+        mkdir -p /usr/local/lib/docker/cli-plugins
+        curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+        chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+      when: not r.stat.exists
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Add ec2-user to the docker group
+      ansible.builtin.user:
+        name: ec2-user
+        groups: docker
+        append: yes
+      become: yes
+
+    - name: Reset ssh connection to allow user changes to affect ansible user
+      ansible.builtin.meta:
+        reset_connection
+
+    - name: Determine if prod directory exists
+      ansible.builtin.stat:
+        path: /home/ec2-user/prod/
+      register: p
+
+    - name: Copy prod directory to the EC2 instance if it does not exist
+      copy:
+        src: ../prod/
+        dest: /home/ec2-user/prod/
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+      when: not p.stat.exists
+
+    - name: Deploy!
+      community.docker.docker_compose_v2:
+        project_src: /home/ec2-user/prod
+        state: present

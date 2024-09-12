@@ -1,0 +1,23 @@
+services:
+  traefik:
+    image: traefik:2.11
+    command:
+      - "--api=true"
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker=true"
+      - "--providers.docker.network=shared_network"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mydashboard.rule=Host(`dashboard.{{ HOST }}`)"
+      - "traefik.http.routers.mydashboard.service=api@internal"
+      - "traefik.http.routers.mydashboard.middlewares=myauth"
+      - "traefik.http.middlewares.myauth.basicauth.users=${HASHED_CREDENTIALS}"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - shared_network
