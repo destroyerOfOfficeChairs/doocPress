@@ -28,3 +28,15 @@
       - {{ DB_SERVICE }}:/var/lib/mysql
     networks:
       - {{ DB_NETWORK }}
+
+  {{ WP_SERVICE }}_wpcli:
+    image: wordpress:cli
+    env_file:
+      - {{ WP_SERVICE }}.env
+    volumes:
+      - {{ WP_SERVICE }}:/var/www/html
+    networks:
+      - {{ WP_SERVICE }}_network
+    depends_on:
+      - {{ WP_SERVICE }}
+      - {{ DB_SERVICE }}

@@ -36,26 +36,6 @@ def run_cloudformation(stack_name, template_file, key_name, region):
     waiter.wait(StackName=stack_name)
     print("Stack creation complete")
 
-# def run_cloudformation(stack_name, template_file, key_name, region):
-#     print(f"Creating CloudFormation stack {stack_name}...")
-#     subprocess.run([
-#         'aws', 'cloudformation', 'create-stack',
-#         '--stack-name', stack_name,
-#         '--template-body', f'file://{template_file}',
-#         '--parameters', f'ParameterKey=KeyName,ParameterValue={key_name}',
-#         '--region', region,
-#         '--no-cli-pager'
-#     ], check=True)
-#     # Wait for the creation to complete
-#     print(f"Waiting for stack {stack_name} to be created...")
-#     subprocess.run([
-#         'aws', 'cloudformation', 'wait', 'stack-create-complete',
-#         '--stack-name', stack_name,
-#         '--region', region,
-#         '--no-cli-pager'
-#     ], check=True)
-#     print(f"CloudFormation stack {stack_name} created")
-
 def get_instance_public_ip(stack_name, region):
     ec2 = boto3.client('ec2', region_name=region)
     stack = boto3.client('cloudformation', region_name=region).describe_stack_resources(StackName=stack_name)

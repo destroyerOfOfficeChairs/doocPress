@@ -1,0 +1,18 @@
+
+services:
+{{ traefik }}
+
+{% for site in sites %}
+{{ site }}
+
+{% endfor %}
+
+volumes:{% for service in services %}
+  {{ service }}:
+  {{ service }}_DB:{% endfor %}
+
+networks:
+  shared_network:
+    name: shared_network{% for service in services %}
+  {{ service }}_network:
+    driver: bridge{% endfor %}

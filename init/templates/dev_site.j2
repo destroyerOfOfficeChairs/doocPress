@@ -3,7 +3,7 @@
     container_name: {{ WP_SERVICE }}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.{{ WP_SERVICE }}.rule=Host(`{{ WP_DOMAIN }}`)"
+      - "traefik.http.routers.{{ WP_SERVICE }}.rule=Host(`{{ WP_SERVICE }}.localhost`)"
       - "traefik.http.services.{{ WP_SERVICE }}.loadbalancer.server.port=80"
     env_file:
       - {{ WP_SERVICE }}.env
@@ -27,3 +27,15 @@
       - {{ DB_SERVICE }}:/var/lib/mysql
     networks:
       - {{ DB_NETWORK }}
+
+  {{ WP_SERVICE }}_wpcli:
+    image: wordpress:cli
+    env_file:
+      - {{ WP_SERVICE }}.env
+    volumes:
+      - {{ WP_SERVICE }}:/var/www/html
+    networks:
+      - {{ WP_SERVICE }}_network
+    depends_on:
+      - {{ WP_SERVICE }}
+      - {{ DB_SERVICE }}
